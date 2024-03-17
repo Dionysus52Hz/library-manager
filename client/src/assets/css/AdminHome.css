@@ -1,0 +1,6 @@
+.v-navigation-drawer--mobile {
+   top: 0 !important;
+   height: 100% !important;
+   z-index: 1010 !important;
+   width: 300px !important;
+}

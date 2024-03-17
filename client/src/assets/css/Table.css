@@ -1,0 +1,80 @@
+.table-container {
+   overflow: scroll;
+}
+table {
+   width: 100%;
+   font-size: 13px;
+   border-collapse: collapse;
+}
+tr {
+   transition: 0.25s ease-in-out;
+}
+
+tr:hover {
+   background-color: #535bf21f;
+}
+
+th {
+   border: 1px solid black !important;
+   text-align: center !important;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   padding: 8px;
+   white-space: nowrap;
+}
+
+td {
+   border: 1px solid black !important;
+   text-overflow: ellipsis;
+   overflow: hidden;
+   text-align: center;
+   padding: 8px;
+   cursor: pointer;
+   transition: 0.1s ease-in-out;
+   max-width: 100px;
+   white-space: pre;
+}
+
+td.active {
+   background-color: #535bf243;
+}
+
+.data-full-show .prop,
+.data-full-show .data {
+   height: 40px;
+   display: flex;
+   align-items: center;
+}
+
+.data-full-show {
+   background-color: #fff;
+   z-index: 100;
+   padding: 12px;
+   font-size: 13px;
+}
+
+.data-full-show .prop {
+   background-color: #535bf2;
+   font-weight: 800;
+   color: #fff;
+}
+
+.data-full-show .data {
+   border: 1px solid black;
+   padding: 0 16px;
+}
+
+.prop-enter-active,
+.prop-leave-active {
+   transition: opacity 0.1s ease-in-out;
+}
+
+.prop-enter-from,
+.prop-leave-to {
+   opacity: 0;
+}
+
+.edit-btn,
+.delete-btn {
+   margin: 8px;
+}

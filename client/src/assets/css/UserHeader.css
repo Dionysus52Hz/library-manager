@@ -1,0 +1,46 @@
+.v-app-bar {
+   display: flex;
+   align-items: center;
+   border-left: 0.05rem solid #e7eaf0;
+   border-right: 0.05rem solid #e7eaf0;
+}
+
+.v-app-bar::before {
+   content: '';
+   position: absolute;
+   height: 100%;
+   width: 200%;
+   border-bottom: 0.05rem dashed #e7eaf0;
+   z-index: 0;
+   pointer-events: none;
+}
+
+.v-navigation-drawer--mobile {
+   position: fixed !important;
+   top: 16px !important;
+   right: 16px !important;
+   z-index: 1002 !important;
+   height: fit-content !important;
+   border-radius: 8px;
+}
+
+.v-list {
+   font-size: 18px;
+   padding: 0;
+}
+
+.v-list .v-list-item {
+   padding: 16px;
+}
+
+.v-list-item:not(:first-child) {
+   border-top: 0.05rem dashed #ccc;
+}
+
+.v-card-actions button {
+   font-size: 15px;
+   padding: 0px 8px 0 16px;
+   font-weight: 700;
+   text-transform: capitalize;
+   letter-spacing: normal;
+}

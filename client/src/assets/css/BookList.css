@@ -1,0 +1,22 @@
+.v-sheet {
+   border-radius: 8px;
+   border: 1px solid #fff;
+   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+.book-item-img {
+   width: 120px;
+   aspect-ratio: 210 / 297;
+   background-color: rgb(var(--v-theme-primary));
+   object-fit: contain;
+   margin-right: 16px;
+}
+
+.book-item-details {
+   padding: 0 16px;
+   display: flex;
+   flex-direction: column;
+   flex-grow: 1;
+   justify-content: space-between;
+   row-gap: 10px;
+}
