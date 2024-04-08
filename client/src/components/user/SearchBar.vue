@@ -2,7 +2,7 @@
    <v-sheet class="flex-center search-bar text-primary">
       <v-select
          class="search-filter"
-         v-model="filterSelected"
+         v-model="searchFilter.filterSelected"
          :items="filters"
          item-title="text"
          item-value="value"
@@ -24,73 +24,38 @@
          placeholder="Nhập từ khoá"
          hide-details="auto"
          class="text-primary"
-         v-model="searchText"
+         v-model.trim="searchFilter.searchText"
       >
       </v-text-field>
-      <v-btn flat color="primary" class="search-btn">
+      <v-btn
+         flat
+         color="primary"
+         class="search-btn"
+         @click="submitSearch"
+         :disabled="searchFilter.searchText === ''"
+      >
          <v-icon
             :icon="mdiMagnify"
             size="x-large"
-            @click="submitSearch"
          ></v-icon>
       </v-btn>
    </v-sheet>
 </template>
 
 <script setup>
-import { mdiMagnify } from '@mdi/js';
-import { storeToRefs } from 'pinia';
-import { ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { useSearchFilterStore } from '~/stores';
+   import { mdiMagnify } from '@mdi/js';
+   import { storeToRefs } from 'pinia';
+   import { useSearchFilterForUserStore } from '~/stores';
 
-const searchFilterStore = useSearchFilterStore();
-const filters = [
-   {
-      filter: 'keyword',
-      text: 'Từ khoá bất kỳ',
-   },
-   {
-      filter: 'title',
-      text: 'Tựa đề',
-   },
-   {
-      filter: 'author',
-      text: 'Tác giả',
-   },
-   {
-      filter: 'publishedYear',
-      text: 'Năm xuất bản',
-   },
-];
-
-const filterSelected = ref({
-   filter: 'keyword',
-   text: 'Từ khoá bất kỳ',
-});
-const searchText = ref('');
-const searchFilter = ref({});
-
-watch([searchText, filterSelected], ([newSearchText, newFilterSelected]) => {
-   searchFilter.value = {
-      searchText: newSearchText,
-      filter: newFilterSelected,
-   };
-});
-
-const router = useRouter();
-const goToResultPage = () => {
-   router.push({
-      name: 'resultPage',
-      query: {
-         searchText: searchText.value,
-         filter: filterSelected.value.filter,
-      },
+   const props = defineProps({
+      filters: Array,
    });
-};
+   const emit = defineEmits(['submit-search']);
 
-const submitSearch = () => {
-   goToResultPage();
-   searchFilterStore.setSearchFilter(searchFilter.value);
-};
+   const searchFilterStore = useSearchFilterForUserStore();
+   const { searchFilter } = storeToRefs(searchFilterStore);
+
+   const submitSearch = () => {
+      emit('submit-search');
+   };
 </script>

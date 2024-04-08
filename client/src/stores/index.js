@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import { SEARCH_FILTERS_FOR_USER } from '~/utils/constants';
 
 export const useCurrentPageStore = defineStore('current-page', () => {
    const currentPage = ref('');
@@ -11,13 +12,20 @@ export const useCurrentPageStore = defineStore('current-page', () => {
    return { currentPage, setCurrentPage };
 });
 
-export const useSearchFilterStore = defineStore('search-filter', () => {
-   const searchFilters = ref({});
+export const useSearchFilterForUserStore = defineStore(
+   'search-filter-for-user',
+   () => {
+      const searchFilter = ref({});
 
-   function setSearchFilter(filter) {
-      console.log(filter);
-      searchFilters.value = filter;
+      function setSearchFilter(filter) {
+         searchFilter.value = filter;
+      }
+
+      return { searchFilter, setSearchFilter };
+   },
+   {
+      persist: {
+         storage: sessionStorage,
+      },
    }
-
-   return { searchFilters, setSearchFilter };
-});
+);

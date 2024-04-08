@@ -1,0 +1,12 @@
+.loading-circular {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   position: absolute;
+   top: var(--v-layout-top);
+   right: 0;
+   width: calc(100vw - var(--v-layout-left));
+   height: calc(100vh - var(--v-layout-top));
+   z-index: 2000;
+   pointer-events: none;
+}

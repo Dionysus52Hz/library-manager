@@ -15,7 +15,11 @@ const createNew = async (req, res, next) => {
 const findAll = async (req, res, next) => {
    try {
       const filter = req.query.filter;
-      if (filter) {
+      const combinationFilters = req.query.filters;
+      if (combinationFilters) {
+         const books = await bookService.findByFilters(combinationFilters);
+         res.status(StatusCodes.OK).json(books);
+      } else if (filter) {
          const books = await bookService.findByFilter(filter);
          res.status(StatusCodes.OK).json(books);
       } else {
@@ -23,6 +27,7 @@ const findAll = async (req, res, next) => {
          res.status(StatusCodes.OK).json(books);
       }
    } catch (error) {
+      console.log(error);
       return next(
          new ApiError(
             StatusCodes.BAD_REQUEST,

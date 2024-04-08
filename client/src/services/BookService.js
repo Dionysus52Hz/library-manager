@@ -27,6 +27,16 @@ class BookService {
       ).data;
    }
 
+   async findByCombinationFilters(filters) {
+      return (
+         await this.API.get('/', {
+            params: {
+               filters,
+            },
+         })
+      ).data;
+   }
+
    async updateOne(id, data) {
       return (await this.API.put(`/${id}`, data)).data;
    }

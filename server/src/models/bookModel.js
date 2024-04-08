@@ -1,21 +1,28 @@
+/* eslint-disable indent */
 import Joi from 'joi';
 import { GET_DB } from '~/config/mongodb';
 import { ObjectId } from 'mongodb';
 
 const BOOK_COLLECTION_NAME = 'books';
+const CURRENT_YEAR = new Date().getFullYear();
 const BOOK_COLLECTION_SCHEMA = Joi.object({
-   bookId: Joi.string().min(0).max(256).default(''),
-   title: Joi.string().required().min(1).max(100).trim().strict(),
-   slug: Joi.string().required().min(1).trim().strict(),
-   description: Joi.string().required().min(3).max(255).trim().strict(),
-   topic: Joi.string().max(256).trim().strict().default(''),
-   type: Joi.string().max(256).trim().strict().default(''),
-   publisher: Joi.string().max(256).trim().strict().default(''),
-   publishedAt: Joi.string().max(4).trim().strict().default(''),
-   author: Joi.string().min(0).max(256).trim().strict().default(''),
+   title: Joi.string().max(256).trim().strict().required(),
+   description: Joi.string().min(2).max(256).trim().strict().required(),
+   bookId: Joi.string().min(7).max(20).default('').allow(''),
+   slug: Joi.string().required().trim().strict(),
+   topic: Joi.string().min(2).max(50).trim().strict().default('').allow(''),
+   type: Joi.string().min(2).max(50).trim().strict().default('').allow(''),
+   publisher: Joi.string().min(2).max(50).trim().strict().default('').allow(''),
+   publishYear: Joi.number()
+      .integer()
+      .min(0)
+      .max(CURRENT_YEAR)
+      .default(null)
+      .optional()
+      .allow(null),
+   author: Joi.string().min(1).max(256).trim().strict().default('').allow(''),
    createdAt: Joi.date().timestamp('javascript').default(Date.now),
-   updateAt: Joi.date().timestamp('javascript').default(null),
-   _destroy: Joi.boolean().default(false),
+   updatedAt: Joi.date().timestamp('javascript').default(null),
 });
 
 const validateBeforeCreate = async (data) => {
@@ -27,6 +34,16 @@ const validateBeforeCreate = async (data) => {
 const createNew = async (data) => {
    try {
       const validData = await validateBeforeCreate(data);
+      // const bookIdIsExisted = await GET_DB()
+      //    .collection(BOOK_COLLECTION_NAME)
+      //    .findOne({ bookId: data.bookId });
+
+      // if (!bookIdIsExisted) {
+      //    return await GET_DB()
+      //       .collection(BOOK_COLLECTION_NAME)
+      //       .insertOne(validData);
+      // } else console.log('book is existed');
+
       return await GET_DB()
          .collection(BOOK_COLLECTION_NAME)
          .insertOne(validData);
@@ -55,13 +72,99 @@ const findOneById = async (id) => {
    }
 };
 
+const findByAnyKeywords = async (keyword) => {
+   const keys = [
+      'title',
+      'author',
+      'description',
+      'topic',
+      'publisher',
+      'publishYear',
+      'bookId',
+   ];
+   if (keyword === '') {
+      return [];
+   } else {
+      const books = await findAll();
+
+      return books.filter((book) => {
+         return keys.some((key) => {
+            return book[key] && book[key].toString().includes(keyword);
+         });
+      });
+   }
+};
+
 const findByFilter = async (filter) => {
    try {
+      switch (filter.filterSelected.filter) {
+         case 'keyword':
+            return findByAnyKeywords(filter.searchText);
+
+         case 'title':
+            return GET_DB()
+               .collection(BOOK_COLLECTION_NAME)
+               .find({
+                  title: { $regex: new RegExp(filter.searchText, 'i') },
+               })
+               .toArray();
+
+         case 'author':
+            return GET_DB()
+               .collection(BOOK_COLLECTION_NAME)
+               .find({
+                  author: { $regex: new RegExp(filter.searchText, 'i') },
+               })
+               .toArray();
+
+         case 'publishYear':
+            return GET_DB()
+               .collection(BOOK_COLLECTION_NAME)
+               .find({
+                  publishYear: parseInt(filter.searchText),
+               })
+               .toArray();
+
+         case 'bookId':
+            return GET_DB()
+               .collection(BOOK_COLLECTION_NAME)
+               .find({
+                  bookId: { $regex: new RegExp(filter.searchText, 'i') },
+               })
+               .toArray();
+
+         default:
+            return [];
+      }
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
+const findByFilters = async (filters) => {
+   try {
+      const query = filters.map((filter) => {
+         const andFilters = filter.map((obj) => {
+            let convertedObj = {};
+
+            for (const key in obj) {
+               if (key === 'publishYear') {
+                  convertedObj[key] = parseInt(obj[key]);
+               } else {
+                  convertedObj[key] = { $regex: new RegExp(obj[key], 'i') };
+               }
+            }
+            // console.log(convertedObj);
+            return convertedObj;
+         });
+         return { $and: andFilters };
+      });
+
+      const finalQuery = { $or: query };
+
       return GET_DB()
          .collection(BOOK_COLLECTION_NAME)
-         .find({
-            title: { $regex: new RegExp(filter.searchText, 'i') },
-         })
+         .find(finalQuery)
          .toArray();
    } catch (error) {
       throw new Error(error);
@@ -70,18 +173,20 @@ const findByFilter = async (filter) => {
 
 const extractData = (payload) => {
    const result = {
-      bookId: payload.bookId,
       title: payload.title,
-      slug: payload.slug,
       description: payload.description,
+      bookId: payload.bookId,
+      slug: payload.slug,
       topic: payload.topic,
       type: payload.type,
       publisher: payload.publisher,
-      publishedAt: payload.publishedAt,
+      publishYear:
+         payload.publishYear === '' || payload.publishYear === null
+            ? null
+            : parseInt(payload.publishYear),
       author: payload.author,
       createdAt: payload.createdAt,
-      updateAt: Date.now(),
-      _destroy: payload._destroy,
+      updatedAt: Date.now(),
    };
    return result;
 };
@@ -123,6 +228,7 @@ export const bookModel = {
    findAll,
    findOneById,
    findByFilter,
+   findByFilters,
    updateOne,
    deleteOne,
 };

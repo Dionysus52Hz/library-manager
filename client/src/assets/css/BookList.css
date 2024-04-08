@@ -1,15 +1,29 @@
 .v-sheet {
    border-radius: 8px;
+   box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
    border: 1px solid #fff;
-   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+.v-list {
+   border-top: 1px dashed #ccc;
 }
 
 .book-item-img {
+   position: relative;
    width: 120px;
-   aspect-ratio: 210 / 297;
-   background-color: rgb(var(--v-theme-primary));
-   object-fit: contain;
+   min-width: 120px;
+   aspect-ratio: 210/297;
    margin-right: 16px;
+   background-color: rgb(var(--v-theme-primary));
+   border-radius: 8px;
+   overflow: hidden;
+}
+
+.book-item-img img {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
 }
 
 .book-item-details {

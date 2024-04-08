@@ -6,7 +6,10 @@
    >
       <v-row class="data-full-show flex-center">
          <v-col class="prop v-col-3 flex-center">
-            <Transition name="prop" mode="out-in">
+            <Transition
+               name="prop"
+               mode="out-in"
+            >
                <span :key="activeProp">{{
                   activeProp ? activeProp : tableHeaders[0]
                }}</span>
@@ -16,8 +19,59 @@
          <div class="data v-col-9">{{ activeData ? activeData : '' }}</div>
       </v-row>
 
+      <v-row class="sort-bar">
+         <v-col
+            cols="auto"
+            class="d-flex align-center"
+         >
+            <p>Sắp xếp theo</p>
+         </v-col>
+         <v-col>
+            <v-select
+               v-model="sortCondition.sortBySelected"
+               :items="sortBy"
+               item-title="text"
+               item-value="value"
+               :hide-details="true"
+            ></v-select>
+         </v-col>
+         <v-col
+            cols="auto"
+            class="d-flex align-center"
+         >
+            <p>Thứ tự</p>
+         </v-col>
+         <v-col>
+            <v-select
+               v-model="sortCondition.sortTypeSelected"
+               :items="sortType"
+               item-title="text"
+               item-value="value"
+               :hide-details="true"
+            ></v-select>
+         </v-col>
+
+         <v-col
+            cols="auto"
+            class="d-flex align-center"
+         >
+            <p>Số lượng hiển thị</p>
+         </v-col>
+         <v-col cols="2">
+            <v-select
+               v-model="documentsPerPageSelected"
+               :items="documentsPerPage"
+               label="Select"
+               return-object
+               single-line
+               :hide-details="true"
+            ></v-select>
+         </v-col>
+      </v-row>
+
       <v-row>
          <v-col
+            cols="12"
             style="overflow: scroll; max-height: 500px; border: 1px solid #ccc"
          >
             <table>
@@ -28,7 +82,7 @@
                   </th>
                </tr>
 
-               <tr v-for="(item, rowIndex) in items">
+               <tr v-for="(item, rowIndex) in itemsRendering">
                   <td>
                      <div class="d-flex flex-column">
                         <v-btn
@@ -69,76 +123,147 @@
 
       <v-row justify="center">
          <v-col cols="8">
-            <v-container class="max-width">
+            <div class="text-center">
                <v-pagination
-                  v-model="page"
-                  :length="15"
-                  class="my-4"
+                  v-model="currentPage"
+                  :length="totalPages"
+                  :total-visible="5"
+                  :next-icon="this.icons.mdiMenuRight"
+                  :prev-icon="this.icons.mdiMenuLeft"
                ></v-pagination>
-            </v-container>
+            </div>
          </v-col>
       </v-row>
    </v-container>
 </template>
 
 <script>
-export default {
-   props: {
-      items: {
-         type: Array,
-         required: true,
-      },
-      itemsCount: {
-         type: Number,
-         required: true,
-      },
-      itemProperties: {
-         type: Array,
-         required: true,
-      },
-      tableHeaders: {
-         type: Array,
-         required: true,
-      },
-   },
-
-   emits: ['itemActive', 'deleteItem'],
-
-   data() {
-      return {
-         activeData: '',
-         activeCellRowIndex: null,
-         activeCellColIndex: null,
-         activeProp: '',
-         page: 1,
-      };
-   },
-
-   methods: {
-      showDataInCell(data) {
-         this.activeData = data;
+   import { mdiMenuLeft, mdiMenuRight } from '@mdi/js';
+   import { sortAscending, sortDescending } from '~/utils/sort';
+   export default {
+      props: {
+         items: {
+            type: Array,
+            required: true,
+         },
+         itemsCount: {
+            type: Number,
+            required: true,
+         },
+         itemProperties: {
+            type: Array,
+            required: true,
+         },
+         tableHeaders: {
+            type: Array,
+            required: true,
+         },
+         sortBy: {
+            type: Array,
+            required: true,
+         },
+         sortType: {
+            type: Array,
+            required: true,
+         },
       },
 
-      setActiveCell(rowIndex, colIndex) {
-         this.activeCellRowIndex = rowIndex;
-         this.activeCellColIndex = colIndex;
+      emits: ['itemActive', 'deleteItem'],
+
+      data() {
+         return {
+            localItems: this.items,
+            activeData: '',
+            activeCellRowIndex: null,
+            activeCellColIndex: null,
+            activeProp: '',
+            currentPage: 1,
+            documentsPerPage: [10, 25, 50],
+            documentsPerPageSelected: 0,
+            documentsRange: {},
+            totalPages: 1,
+            itemsRendering: [],
+            icons: {
+               mdiMenuLeft,
+               mdiMenuRight,
+            },
+            sortCondition: {
+               sortBySelected: this.sortBy[0].value,
+               sortTypeSelected: this.sortType[0].value,
+            },
+         };
       },
 
-      setPropName(colIndex, tableHeaders) {
-         this.activeProp = tableHeaders[colIndex];
+      methods: {
+         renderItems() {
+            this.totalPages = Math.ceil(
+               this.items.length / this.documentsPerPageSelected
+            );
+
+            this.documentsRange = {
+               startIdx: (this.currentPage - 1) * this.documentsPerPageSelected,
+               endIdx: this.currentPage * this.documentsPerPageSelected - 1,
+            };
+
+            this.itemsRendering = this.items.slice(
+               this.documentsRange.startIdx,
+               this.documentsRange.endIdx + 1
+            );
+         },
+         showDataInCell(data) {
+            this.activeData = data;
+         },
+
+         setActiveCell(rowIndex, colIndex) {
+            this.activeCellRowIndex = rowIndex;
+            this.activeCellColIndex = colIndex;
+         },
+
+         setPropName(colIndex, tableHeaders) {
+            this.activeProp = tableHeaders[colIndex];
+         },
+
+         getActiveItem(item) {
+            this.$emit('itemActive', item);
+         },
+
+         deleteItem(item) {
+            this.$emit('deleteItem', item);
+         },
       },
 
-      getActiveItem(item) {
-         this.$emit('itemActive', item);
+      watch: {
+         sortCondition: {
+            handler: function (newValue) {
+               if (newValue.sortTypeSelected === 1) {
+                  sortAscending(this.items, newValue.sortBySelected);
+               } else sortDescending(this.items, newValue.sortBySelected);
+               this.renderItems();
+            },
+            deep: true,
+         },
+         items() {
+            sortAscending(this.items, this.sortCondition.sortBySelected);
+            this.currentPage = 1;
+            this.renderItems();
+         },
+         documentsPerPageSelected() {
+            this.currentPage = 1;
+            this.renderItems();
+         },
+         currentPage() {
+            this.renderItems();
+         },
       },
 
-      deleteItem(item) {
-         this.$emit('deleteItem', item);
+      created() {
+         this.documentsPerPageSelected = this.documentsPerPage[0];
+         sortAscending(this.items, this.sortCondition.sortBySelected);
+         this.renderItems();
       },
-   },
-};
+   };
 </script>
 
 <style scoped>
-@import '~/assets/css/Table.css';
+   @import '~/assets/css/Table.css';
 </style>

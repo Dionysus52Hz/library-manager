@@ -1,0 +1,39 @@
+.v-app-bar.v-toolbar {
+   border-left: 1px solid #ccc;
+   border-right: 1px solid #ccc;
+}
+
+.topic-select {
+   align-items: center;
+}
+
+.topic-select .v-btn {
+   border-radius: 8px !important;
+   text-transform: none;
+   font-weight: 800;
+   letter-spacing: normal;
+   background-color: #f5f9fc;
+   border: 1px solid rgb(var(--v-theme-primary));
+   height: 36px !important;
+}
+
+.topic-select .v-btn:not(:last-child) {
+   margin-right: 16px;
+}
+
+.topic-select .v-tab--selected {
+   background-color: rgb(var(--v-theme-primary));
+   color: #fff;
+}
+
+.loading-circular {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100vw;
+   height: 100vh;
+   z-index: 2000;
+}

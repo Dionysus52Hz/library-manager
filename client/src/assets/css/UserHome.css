@@ -9,12 +9,14 @@
 }
 
 .introduce {
+   position: relative;
    margin-top: 100px;
-   padding-bottom: 16px;
 }
+
 
 .introduce .main-title {
    font-size: 84px;
+   mix-blend-mode: hard-light;
 }
 
 .introduce .search-bar {
@@ -47,14 +49,12 @@
 }
 
 .introduce-image {
-   background-color: rgb(255, 194, 194);
    width: 100%;
    height: 100%;
+   object-fit: contain;
 }
 
 .section {
-   margin-top: 16px !important;
-   border-top: 1px dashed #ccc;
    border-bottom: 1px dashed #ccc;
 }
 
@@ -78,6 +78,6 @@
 }
 
 .topic-select .v-tab--selected {
-   background-color: rgb(var(--v-theme-primary));
    color: #fff;
+   background-color: rgb(var(--v-theme-primary));
 }

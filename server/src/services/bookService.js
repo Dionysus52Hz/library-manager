@@ -1,4 +1,5 @@
-import { slugify } from '~/utils/formatter';
+// import { slugify } from '~/utils/formatter';
+import slugify from 'slugify';
 import { bookModel } from '~/models/bookModel';
 
 const findAll = async () => {
@@ -14,14 +15,17 @@ const createNew = async (reqBody) => {
    try {
       const newBook = {
          ...reqBody,
-         slug: slugify(reqBody.title),
+         slug: slugify(reqBody.title, {
+            locale: 'vi',
+            lower: true,
+         }),
       };
 
       const createdBook = await bookModel.createNew(newBook);
 
       const getNewBook = await bookModel.findOneById(createdBook.insertedId);
 
-      console.log(getNewBook);
+      // console.log(getNewBook);
 
       // Service must have return
       return getNewBook;
@@ -39,9 +43,19 @@ const findOneById = async (id) => {
    }
 };
 
+const findByFilters = async (filters) => {
+   try {
+      const result = await bookModel.findByFilters(filters);
+      return result;
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
 const findByFilter = async (filter) => {
    try {
       const result = await bookModel.findByFilter(filter);
+
       return result;
    } catch (error) {
       throw new Error(error);
@@ -50,7 +64,10 @@ const findByFilter = async (filter) => {
 
 const updateOne = async (id, data) => {
    try {
-      data.slug = slugify(data.title);
+      data.slug = slugify(data.title, {
+         locale: 'vi',
+         lower: true,
+      });
       const result = await bookModel.updateOne(id, data);
       return result;
    } catch (error) {
@@ -72,6 +89,7 @@ export const bookService = {
    findAll,
    findOneById,
    findByFilter,
+   findByFilters,
    updateOne,
    deleteOne,
 };

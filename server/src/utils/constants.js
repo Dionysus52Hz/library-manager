@@ -3,3 +3,5 @@
  * YouTube: https://youtube.com/@trungquandev
  * "A bit of fragrance clings to the hand that gives flowers!"
  */
+
+export const CURRENT_YEAR = new Date().getFullYear();

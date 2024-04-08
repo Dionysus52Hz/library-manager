@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 const USER_COLLECTION_NAME = 'users';
 const USER_COLLECTION_SCHEMA = Joi.object({
-   userId: Joi.string().pattern(new RegExp('^[A-Z][0-9]{7}$')).required(),
+   userId: Joi.string().pattern(new RegExp('^[B][0-9]{7}$')).required(),
    password: Joi.string()
       .required()
       .min(8)
@@ -13,15 +13,14 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       .strict()
       .default(''),
 
-   username: Joi.string().required().min(2).max(50).trim().strict(),
-   slug: Joi.string().required().min(3).trim().strict(),
-   gender: Joi.number().integer().valid(0, 1).required(),
+   username: Joi.string().required().max(50).trim().strict(),
+   slug: Joi.string().required().trim().strict(),
+   gender: Joi.number().integer().valid(0, 1),
    birthday: Joi.date().timestamp('javascript').default(null),
    faculty: Joi.string().min(0).max(255).trim().strict().default(''),
    class: Joi.string().max(8).trim().strict().default(''),
    createdAt: Joi.date().timestamp('javascript').default(Date.now),
-   updateAt: Joi.date().timestamp('javascript').default(null),
-   _destroy: Joi.boolean().default(false),
+   updatedAt: Joi.date().timestamp('javascript').default(null),
 });
 
 const validateBeforeCreate = async (data) => {
