@@ -73,7 +73,6 @@
                :section="'Sách mới cập nhật'"
                :books="newestBooks"
                :documents-per-page="12"
-               @book-active="getBookActive"
             ></book-grid>
          </v-col>
 
@@ -99,18 +98,12 @@
             </book-grid>
          </v-col>
       </v-row>
-
-      <book-details
-         :book="bookActive"
-         ref="BookDetailsRef"
-      ></book-details>
    </v-container>
 </template>
 
 <script setup>
    import SearchBar from '~/components/user/SearchBar.vue';
    import BookGrid from '~/components/user/BookGrid.vue';
-   import BookDetails from '~/pages/user/BookDetails.vue';
    import { useCurrentPageStore } from '~/stores';
    import { useSearchFilterForUserStore } from '~/stores';
    import {
@@ -118,14 +111,12 @@
       BOOK_TOPICS,
       BOOK_TYPES,
    } from '~/utils/constants';
-   import { onBeforeMount, ref } from 'vue';
+   import { onActivated, onBeforeMount, ref } from 'vue';
    import { onBeforeRouteLeave, useRouter } from 'vue-router';
    import { storeToRefs } from 'pinia';
    import BookService from '~/services/BookService';
 
    const currentPageStore = useCurrentPageStore();
-   currentPageStore.setCurrentPage('home');
-
    const searchFilterStore = useSearchFilterForUserStore();
    const { searchFilter } = storeToRefs(searchFilterStore);
    searchFilterStore.setSearchFilter({
@@ -174,19 +165,16 @@
       }
    };
 
-   const BookDetailsRef = ref(null);
-   const bookActive = ref(null);
-   const getBookActive = (book) => {
-      bookActive.value = book;
-      BookDetailsRef.value.openDialog();
-   };
-
    onBeforeMount(async () => {
       await getNewestBooks();
    });
 
    onBeforeRouteLeave(() => {
       console.log('leave from user home');
+   });
+
+   onActivated(() => {
+      currentPageStore.setCurrentPage('home');
    });
 </script>
 <style scoped>

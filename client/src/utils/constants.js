@@ -624,3 +624,53 @@ export const SORT_TYPE = [
       value: -1,
    },
 ];
+
+export const USER_TABLE_HEADERS = {
+   userId: 'Tên đăng nhập',
+   password: 'Mật khẩu',
+   username: 'Họ và tên',
+   birthday: 'Ngày sinh',
+   gender: 'Giới tính',
+   role: 'Quyền',
+   faculty: 'Khoa',
+   class: 'Lớp',
+   isBlocked: 'Tài khoản bị khoá?',
+   passwordChangedAt: 'Mật khẩu thay đổi lúc',
+   createdAt: 'Tạo lúc',
+   updatedAt: 'Cập nhật lúc',
+};
+
+export const USER_SORT_BY = [
+   {
+      text: 'Tên đăng nhập',
+      value: 'userId',
+   },
+   {
+      text: 'Họ và tên',
+      value: 'username',
+   },
+   {
+      text: 'Ngày sinh',
+      value: 'birthday',
+   },
+   {
+      text: 'Khoa',
+      value: 'faculty',
+   },
+   {
+      text: 'Lớp',
+      value: 'class',
+   },
+   {
+      text: 'Thời gian thay đổi mật khẩu',
+      value: 'passwordChangedAt',
+   },
+   {
+      text: 'Thời gian tạo',
+      value: 'createdAt',
+   },
+   {
+      text: 'Thời gian chỉnh sửa',
+      value: 'updatedAt',
+   },
+];

@@ -66,13 +66,7 @@
       </v-row>
 
       <v-list class="bg-background">
-         <h2
-            class="text-primary text-center font-weight-black justify-center pt-4"
-         >
-            KẾT QUẢ TÌM KIẾM CHO TỪ KHOÁ:
-            {{ useRoute().query.searchText }}
-         </h2>
-
+         <slot name="result-heading"></slot>
          <div
             class="text-center pa-4 text-primary"
             v-if="hasPagination && books && books.length > 0"
@@ -93,7 +87,7 @@
                   color="primary"
                   rounded="lg"
                   class="bg-surface"
-                  @click="setBookActive(book)"
+                  @click="goToBookDetailsPage(book)"
                >
                   <template v-slot:prepend>
                      <v-icon
@@ -178,9 +172,6 @@
          default: false,
       },
    });
-
-   const emits = defineEmits(['bookActive']);
-
    const router = useRouter();
 
    const sortBySelected = ref(BOOK_SORT_BY[0].value);
@@ -235,17 +226,12 @@
       sortBooks();
    });
 
-   watch(currentPage, () => {
-      console.log(currentPage.value);
-      // pushPageToQuery(currentPage.value);
-   });
-
-   const setBookActive = (book) => {
-      emits('bookActive', book);
+   const goToBookDetailsPage = (book) => {
       router.push({
          name: 'bookDetailsPage',
          params: {
             slug: book.slug,
+            id: book._id,
          },
       });
    };

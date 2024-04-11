@@ -14,6 +14,9 @@
       "
       :itemsCount="usersCount"
       :tableHeaders="tableHeaders"
+      :sort-by="USER_SORT_BY"
+      :sort-type="SORT_TYPE"
+      @item-active="setActiveUser"
       v-if="usersCount > 0"
    ></data-table>
    <p v-else>Không tìm thấy dữ liệu người dùng.</p>
@@ -54,7 +57,12 @@
          </v-card>
       </v-dialog>
 
-      <v-dialog v-model="addFormDialog" max-width="600" persistent scrollable>
+      <v-dialog
+         v-model="addFormDialog"
+         max-width="600"
+         persistent
+         scrollable
+      >
          <v-card title="Thêm người dùng mới">
             <v-divider></v-divider>
 
@@ -86,124 +94,88 @@
    </div>
 </template>
 
-<script>
-import UserService from '~/services/UserService';
-import DataTable from '~/components/admin/DataTable.vue';
-import UserForm from '~/components/admin/UserForm.vue';
-export default {
-   components: {
-      DataTable,
-      UserForm,
-   },
-   data() {
-      return {
-         tableHeaders: [
-            'Mã số sinh viên',
-            'Mật khẩu',
-            'Tên',
-            'Giới tính',
-            'Ngày sinh',
-            'Khoa',
-            'Lớp',
-            'Tạo lúc',
-            'Cập nhật lúc',
-            'Đã xoá',
-         ],
-         users: [],
-         usersCount: 0,
-         userProperties: [],
-         userActive: {},
-         updateFormDialog: false,
-         addFormDialog: false,
-      };
-   },
+<script setup>
+   import UserService from '~/services/UserService';
+   import DataTable from '~/components/admin/DataTable.vue';
+   import UserForm from '~/components/admin/UserForm.vue';
+   import {
+      USER_TABLE_HEADERS,
+      USER_SORT_BY,
+      SORT_TYPE,
+   } from '~/utils/constants';
+   import { convertTimestamp } from '~/utils/algorithms';
+   import { onMounted, ref } from 'vue';
 
-   methods: {
-      convertTimestamp(timestamp) {
-         const date = new Date(timestamp);
-         return date.toLocaleString('vi-VN');
-      },
-      async getUsers() {
-         try {
-            this.users = await UserService.getAll();
-            this.users.map((user) => {
-               user.createdAt = this.convertTimestamp(user.createdAt);
+   const users = ref(null);
+   const usersCount = ref(0);
+   const userProperties = Object.keys(USER_TABLE_HEADERS);
+   const tableHeaders = Object.values(USER_TABLE_HEADERS);
 
-               user.updateAt
-                  ? (user.updateAt = this.convertTimestamp(user.updateAt))
-                  : null;
-            });
-            this.usersCount = this.users.length;
-            this.userProperties = Object.keys(this.users[0]);
-            console.log(this.userProperties);
-         } catch (error) {
-            console.log(error);
-         }
-      },
+   const addFormDialog = ref(false);
+   const updateFormDialog = ref(false);
 
-      sortUsersByDate() {
-         return this.users.sort(
-            (userA, userB) =>
-               new Date(userB.createdAt) - new Date(userA.createdAt)
-         );
-      },
+   const addForm = ref(null);
+   const updateForm = ref(null);
+   const submitAddUserForm = () => {
+      addForm.value.onSubmit();
+   };
+   const submitUpdateUserForm = () => {
+      updateForm.value.onSubmit();
+   };
 
-      async addUser(data) {
-         try {
-            await UserService.create(data);
-            this.addFormDialog = false;
-            await this.refreshUser();
-         } catch (error) {
-            console.log(error);
-         }
-      },
+   const userActive = ref(null);
+   const setActiveUser = async (user) => {
+      userActive.value = await UserService.findOneById(user._id);
+      updateFormDialog.value = true;
+   };
 
-      async updateUser(data) {
-         try {
-            this.updateFormDialog = false;
-            await UserService.updateOne(data._id, data);
-            await this.refreshUser();
-         } catch (error) {
-            console.log(error);
-         }
-      },
+   const convertUserTimestamp = () => {
+      users.value.map((user) => {
+         user.createdAt = convertTimestamp(user.createdAt);
 
-      submitUpdateUserForm() {
-         if (this.$refs.updateForm) {
-            this.$refs.updateForm.onSubmit();
-         }
-      },
+         user.updatedAt
+            ? (user.updatedAt = convertTimestamp(user.updatedAt))
+            : null;
+      });
+   };
 
-      submitAddUserForm() {
-         if (this.$refs.addForm) {
-            this.$refs.addForm.onSubmit();
-         }
-      },
+   const getUsers = async () => {
+      try {
+         users.value = await UserService.getAll();
+         usersCount.value = users.value.length;
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
-      async setActiveUser(user) {
-         this.userActive = await UserService.findOneById(user._id);
-         this.updateFormDialog = true;
-      },
+   const addUser = async (data) => {
+      try {
+         await UserService.create(data);
+         addFormDialog.value = false;
+         await refreshUser();
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
-      async refreshUser() {
-         await this.getUsers();
-         this.sortUsersByDate();
-      },
+   const updateUser = async (data) => {
+      try {
+         updateFormDialog.value = false;
+         await UserService.updateOne(data._id, data);
+         await refreshUser();
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
-      async deleteUser(user) {
-         try {
-            await UserService.deleteOne(user._id);
-            await this.refreshUser();
-         } catch (error) {
-            console.log(error);
-         }
-      },
-   },
+   const refreshUser = async () => {
+      await getUsers();
+      await convertUserTimestamp();
+   };
 
-   mounted() {
-      this.refreshUser();
-   },
-};
+   onMounted(async () => {
+      await refreshUser();
+   });
 </script>
 
 <style scoped></style>

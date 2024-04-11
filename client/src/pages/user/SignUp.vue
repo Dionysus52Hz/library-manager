@@ -36,17 +36,19 @@
                         base-color="primary"
                      />
 
-                     <div class="font-weight-bold mt-5">Tên</div>
+                     <div class="font-weight-bold mt-5">Email</div>
 
                      <v-text-field
                         counter="50"
-                        v-model="username"
-                        v-bind="usernameProps"
-                        placeholder="Tên"
-                        type="text"
+                        v-model="email"
+                        v-bind="emailProps"
+                        placeholder="Địa chỉ email"
+                        hint="Chỉ chấp nhận email có đuôi .com hoặc .vn"
+                        type="email"
                         color="primary"
                         variant="outlined"
                         base-color="primary"
+                        autocomplete="null"
                      />
 
                      <div class="font-weight-bold mt-5">Mật khẩu</div>
@@ -205,10 +207,15 @@
          .max(8, 'Mã số sinh viên tối đa 8 kí tự')
          .matches(/^[B][0-9]{7}$/, 'Mã số sinh viên không đúng định dạng'),
 
-      username: yup
+      email: yup
          .string()
-         .required('Tên không thể để trống')
-         .max(50, 'Tên dài tối đa 50 kí tự'),
+         .required('Email không thể để trống')
+         .email('Email không đúng định dạng')
+         .matches(
+            /^[\w-\.]+@([\w-]+\.)+(com|vn)$/,
+            'Email không đúng định dạng'
+         )
+         .max(50, 'Email dài tối đa 50 kí tự'),
 
       password: yup
          .string()
@@ -231,7 +238,7 @@
       },
    });
    const [userId, userIdProps] = defineField('userId', vuetifyConfig);
-   const [username, usernameProps] = defineField('username', vuetifyConfig);
+   const [email, emailProps] = defineField('email', vuetifyConfig);
    const [password, passwordProps] = defineField('password', vuetifyConfig);
    const [passwordConfirmation, passwordConfirmationProps] = defineField(
       'passwordConfirmation',
@@ -242,13 +249,12 @@
    const signUpDone = ref(false);
    const onSubmit = handleSubmit(async (values) => {
       try {
+         console.log(123);
          const { passwordConfirmation, ...dataSubmited } = values;
-         console.log(dataSubmited);
          await UserService.create(dataSubmited);
          signUpDone.value = true;
       } catch (error) {
-         console.log(error);
-         signUpDone.value = true;
+         console.log(error.response.data);
       }
    });
    const loadingInterval = ref({});

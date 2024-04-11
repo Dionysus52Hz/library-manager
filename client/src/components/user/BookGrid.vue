@@ -16,7 +16,7 @@
                xl="2"
                v-for="book in booksRendering"
             >
-               <v-card @click="setBookActive(book)">
+               <v-card @click="goToBookDetailsPage(book)">
                   <v-img
                      src="/src/assets/images/bookAlterThumbnail.png"
                      cover
@@ -166,8 +166,14 @@
       pushPageToQuery(currentPage.value);
    });
 
-   const setBookActive = (book) => {
-      emits('bookActive', book);
+   const goToBookDetailsPage = (book) => {
+      router.push({
+         name: 'bookDetailsPage',
+         params: {
+            slug: book.slug,
+            id: book._id,
+         },
+      });
    };
 
    onMounted(() => {

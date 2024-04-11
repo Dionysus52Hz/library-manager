@@ -1,11 +1,15 @@
 <template>
-   <v-container fluid>
+   <v-container
+      fluid
+      class="pa-6"
+   >
       <v-row
          class="align-center"
          v-for="(_i, index) in numOfInputs"
          :key="index"
+         :class="`bg-${inputsColorGroup[index]}-lighten-5`"
       >
-         <v-col :cols="numOfInputs > 1 ? 11 : 12">
+         <v-col :cols="numOfInputs > 1 ? '' : 12">
             <v-sheet
                class="flex-center search-bar text-primary pa-1"
                rounded
@@ -35,13 +39,14 @@
                   placeholder="Nhập từ khoá"
                   hide-details="auto"
                   class="text-primary"
+                  @keyup.enter="submitSearch"
                >
                </v-text-field>
             </v-sheet>
          </v-col>
 
          <v-col
-            cols="1"
+            cols="auto"
             v-if="numOfInputs > 1"
          >
             <v-btn
@@ -54,19 +59,29 @@
             >
             </v-btn>
          </v-col>
-
          <v-col
             v-if="index < numOfInputs - 1"
             cols="12"
-            class="text-center"
+            class="text-center py-2"
+            :class="{ 'bg-background': linkBetweenInputs[index] === false }"
          >
-            <v-icon
-               :icon="linkBetweenInputs[index] ? mdiLink : mdiLinkOff"
+            <v-btn
+               variant="text"
+               :ripple="false"
                @click="toggleLink(index)"
+               size="large"
                class="link-between-inputs-btn"
+               rounded="xl"
             >
-            </v-icon>
-            {{ index }}
+               <v-icon
+                  :icon="linkBetweenInputs[index] ? mdiLink : mdiLinkOff"
+                  style="transform: rotate(-90deg)"
+                  class="me-3"
+                  size="x-large"
+               >
+               </v-icon>
+               {{ linkBetweenInputs[index] ? 'and' : 'or' }}
+            </v-btn>
          </v-col>
       </v-row>
 
@@ -85,6 +100,7 @@
          <v-col cols="12">
             <v-btn
                color="primary"
+               size="large"
                :append-icon="mdiMagnify"
                @click="submitSearch"
                :disabled="inputsAreEmpty === false ? false : true"
@@ -157,6 +173,58 @@
          !filterInputs.value[i].linkToNextInput;
    };
    const filtersCombination = ref([]);
+   const inputsColorGroup = ref({
+      0: 'indigo',
+      1: 'indigo',
+   });
+   const colors = [
+      'pink',
+      'deep-purple',
+      'indigo',
+      'light-green',
+      'amber',
+      'deep-orange',
+   ];
+   const generateRandomColor = () => {
+      let colorChoosen = '';
+      while (
+         (colorChoosen === '' ||
+            Object.values(inputsColorGroup.value).includes(colorChoosen)) &&
+         Object.values(inputsColorGroup.value).length < colors.length
+      ) {
+         colorChoosen = colors[Math.floor(Math.random() * colors.length)];
+      }
+      return colorChoosen;
+   };
+
+   const assignInputsColorGroup = () => {
+      inputsColorGroup.value = {};
+      let i = 0;
+      let colorChoosen = '';
+
+      while (i < filterInputs.value.length) {
+         if (filterInputs.value[i].linkToNextInput === false) {
+            colorChoosen = generateRandomColor();
+            inputsColorGroup.value[i] = colorChoosen;
+            i++;
+         } else {
+            let j = i;
+            colorChoosen = generateRandomColor();
+            while (
+               j < filterInputs.value.length &&
+               filterInputs.value[j].linkToNextInput === true
+            ) {
+               inputsColorGroup.value[j] = colorChoosen;
+               j++;
+            }
+            if (j < filterInputs.value.length) {
+               inputsColorGroup.value[j] = colorChoosen;
+            }
+            i = j + 1;
+         }
+      }
+   };
+
    const getFilterCombination = () => {
       filtersCombination.value = [];
       let subArray = [];
@@ -164,25 +232,26 @@
 
       while (i < filterInputs.value.length) {
          if (filterInputs.value[i].linkToNextInput === false) {
-            // subArray.push({ ...filterInputs.value[i] });
             subArray.push({
                [filterInputs.value[i].filter.filter]:
                   filterInputs.value[i].searchText,
             });
+
             filtersCombination.value.push(subArray);
             subArray = [];
             i++;
          } else {
             let j = i;
+
             while (
                j < filterInputs.value.length &&
                filterInputs.value[j].linkToNextInput === true
             ) {
-               // subArray.push({ ...filterInputs.value[j] });
                subArray.push({
                   [filterInputs.value[j].filter.filter]:
                      filterInputs.value[j].searchText,
                });
+
                j++;
             }
             if (j < filterInputs.value.length) {
@@ -192,6 +261,7 @@
                });
             }
             filtersCombination.value.push(subArray);
+
             subArray = [];
             i = j + 1;
          }
@@ -203,14 +273,24 @@
       () => {
          getFilterCombination();
          checkEmptyInputs();
-         console.log(inputsAreEmpty.value);
+      },
+      { deep: true }
+   );
+
+   watch(
+      linkBetweenInputs,
+      () => {
+         assignInputsColorGroup();
       },
       { deep: true }
    );
 
    const emits = defineEmits(['submit-search']);
    const submitSearch = () => {
-      emits('submit-search', Array.from(filtersCombination.value));
+      if (!inputsAreEmpty.value) {
+         console.log(214);
+         emits('submit-search', Array.from(filtersCombination.value));
+      }
    };
 </script>
 
@@ -223,5 +303,9 @@
       font-weight: 800;
       max-width: 200px;
       letter-spacing: normal;
+   }
+
+   .drop-input-btn {
+      border: 0.05rem dashed rgb(var(--v-theme-primary));
    }
 </style>

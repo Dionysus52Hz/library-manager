@@ -24,6 +24,10 @@ class UserService {
    async deleteOne(id) {
       return (await this.API.delete(`/${id}`)).data;
    }
+
+   async login(data) {
+      return (await this.API.post('/login', data)).data;
+   }
 }
 
 export default new UserService();

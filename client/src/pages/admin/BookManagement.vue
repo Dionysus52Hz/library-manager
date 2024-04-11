@@ -242,15 +242,6 @@
          },
       },
 
-      watch: {
-         sortBySelected() {
-            console.log(this.sortBySelected);
-         },
-         sortTypeSelected() {
-            console.log(this.sortTypeSelected);
-         },
-      },
-
       mounted() {
          this.refreshBook();
       },

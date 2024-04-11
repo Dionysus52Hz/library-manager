@@ -1,8 +1,12 @@
+.search-tab {
+   box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+}
+
 .search-bar {
    border-radius: 4px;
    padding: 4px;
    background-color: #fff;
-   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+   box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
 }
 .search-bar :deep(.search-filter) {
    font-size: 14px;

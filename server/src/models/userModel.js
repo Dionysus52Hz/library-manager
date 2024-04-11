@@ -1,24 +1,29 @@
 import Joi from 'joi';
 import { GET_DB } from '~/config/mongodb';
 import { ObjectId } from 'mongodb';
+import bcrypt from 'bcrypt';
 
 const USER_COLLECTION_NAME = 'users';
 const USER_COLLECTION_SCHEMA = Joi.object({
    userId: Joi.string().pattern(new RegExp('^[B][0-9]{7}$')).required(),
-   password: Joi.string()
-      .required()
-      .min(8)
-      .max(255)
-      .trim()
-      .strict()
-      .default(''),
-
-   username: Joi.string().required().max(50).trim().strict(),
-   slug: Joi.string().required().trim().strict(),
+   password: Joi.string().required().trim().strict().default(''),
+   username: Joi.string().max(50).trim().strict().default(''),
+   email: Joi.string().email({
+      minDomainSegments: 2,
+      tlds: { allow: ['com', 'vn'] },
+   }),
+   role: Joi.string().default('user'),
+   slug: Joi.string().trim().strict().allow(''),
    gender: Joi.number().integer().valid(0, 1),
    birthday: Joi.date().timestamp('javascript').default(null),
    faculty: Joi.string().min(0).max(255).trim().strict().default(''),
    class: Joi.string().max(8).trim().strict().default(''),
+   favoriteBooks: Joi.array().items(Joi.object()),
+   refreshToken: Joi.string().default(''),
+   passwordChangedAt: Joi.date().timestamp('javascript').default(null),
+   passwordResetToken: Joi.string().default(null),
+   passwordResetExpires: Joi.date().timestamp('javascript').default(null),
+   isBlocked: Joi.boolean().default(false),
    createdAt: Joi.date().timestamp('javascript').default(Date.now),
    updatedAt: Joi.date().timestamp('javascript').default(null),
 });
@@ -32,6 +37,28 @@ const validateBeforeCreate = async (data) => {
 const createNew = async (data) => {
    try {
       const validData = await validateBeforeCreate(data);
+
+      const user = await GET_DB()
+         .collection(USER_COLLECTION_NAME)
+         .find({
+            $or: [
+               {
+                  userId: validData.userId,
+               },
+               {
+                  email: validData.email,
+               },
+            ],
+         })
+         .toArray();
+
+      if (user.length > 0) {
+         throw new Error('User is existed!');
+      }
+
+      const hashPassword = await bcrypt.hash(validData.password, 10);
+      validData.password = hashPassword;
+
       return await GET_DB()
          .collection(USER_COLLECTION_NAME)
          .insertOne(validData);
@@ -60,27 +87,52 @@ const findOneById = async (id) => {
    }
 };
 
+const isCorrectPassword = async (reqBody) => {
+   try {
+      const user = await GET_DB().collection(USER_COLLECTION_NAME).findOne({
+         userId: reqBody.userId,
+      });
+
+      const checkPassword = await bcrypt.compare(
+         reqBody.password,
+         user.password
+      );
+
+      if (checkPassword) {
+         return user;
+      } else return null;
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
 const extractData = (payload) => {
    const result = {
-      bookId: payload.bookId,
-      title: payload.title,
+      userId: payload.userId,
+      password: payload.password,
+      username: payload.username,
+      email: payload.email,
+      role: payload.role,
       slug: payload.slug,
-      description: payload.description,
-      topic: payload.topic,
-      type: payload.type,
-      publisher: payload.publisher,
-      publishedAt: payload.publishedAt,
-      author: payload.author,
+      gender: payload.gender,
+      birthday: payload.birthday,
+      faculty: payload.faculty,
+      class: payload.class,
+      favoriteBooks: payload.favoriteBooks,
+      refreshToken: payload.refreshToken,
+      passwordChangedAt: payload.passwordChangedAt,
+      passwordResetToken: payload.passwordResetToken,
+      passwordResetExpires: payload.passwordResetExpires,
+      isBlocked: payload.isBlocked,
       createdAt: payload.createdAt,
-      updateAt: Date.now(),
-      _destroy: payload._destroy,
+      updatedAt: Date.now(),
    };
    return result;
 };
 
 const updateOne = async (id, data) => {
    try {
-      const book = extractData(data);
+      const user = extractData(data);
 
       return GET_DB()
          .collection(USER_COLLECTION_NAME)
@@ -88,8 +140,24 @@ const updateOne = async (id, data) => {
             {
                _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
             },
-            { $set: book },
+            { $set: user },
             { returnDocument: 'after' }
+         );
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
+const findByIdAndUpdate = async (id, data) => {
+   try {
+      return GET_DB()
+         .collection(USER_COLLECTION_NAME)
+         .findOneAndUpdate(
+            {
+               _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            },
+            { $set: data },
+            { returnNewDocument: true }
          );
    } catch (error) {
       throw new Error(error);
@@ -114,6 +182,8 @@ export const userModel = {
    createNew,
    findAll,
    findOneById,
+   findByIdAndUpdate,
+   isCorrectPassword,
    updateOne,
    deleteOne,
 };

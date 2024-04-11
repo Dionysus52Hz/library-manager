@@ -70,10 +70,51 @@ const deleteOne = async (req, res, next) => {
    }
 };
 
+const login = async (req, res, next) => {
+   try {
+      const { userData, accessToken, refreshToken } = await userService.login(
+         req.body
+      );
+
+      res.cookie('refreshToken', refreshToken, {
+         httpOnly: true,
+         maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.status(StatusCodes.OK).json({
+         userData,
+         accessToken,
+      });
+   } catch (error) {
+      return next(
+         new ApiError(StatusCodes.BAD_REQUEST, 'An error occurred while login.')
+      );
+   }
+};
+
+const getCurrent = async (req, res, next) => {
+   try {
+      const { _id } = req.user;
+      const { password, role, refreshToken, ...userData } =
+         await userService.findOneById(_id);
+      res.status(StatusCodes.OK).json({
+         result: userData ? userData : 'User not found',
+      });
+   } catch (error) {
+      return next(
+         new ApiError(
+            StatusCodes.BAD_REQUEST,
+            'An error occurred while retrieving current user.'
+         )
+      );
+   }
+};
+
 export const userController = {
    createNew,
    findAll,
    findOneById,
    updateOne,
    deleteOne,
+   login,
+   getCurrent,
 };

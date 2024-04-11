@@ -25,6 +25,7 @@
          hide-details="auto"
          class="text-primary"
          v-model.trim="searchFilter.searchText"
+         @keyup.enter="submitSearch"
       >
       </v-text-field>
       <v-btn
@@ -56,6 +57,8 @@
    const { searchFilter } = storeToRefs(searchFilterStore);
 
    const submitSearch = () => {
-      emit('submit-search');
+      if (searchFilter.value.searchText !== '') {
+         emit('submit-search');
+      }
    };
 </script>

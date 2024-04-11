@@ -5,7 +5,11 @@
             cols="12"
             class="pa-6 pb-3"
          >
-            <v-card rounded="lg">
+            <v-card
+               rounded="lg"
+               color="background"
+               class="search-tab"
+            >
                <v-tabs
                   v-model="searchTab"
                   color="primary"
@@ -50,6 +54,15 @@
                :books="books"
                @book-active="getBookActive"
             >
+               <template v-slot:result-heading>
+                  <h2
+                     class="text-primary text-center font-weight-black justify-center pt-4"
+                  >
+                     KẾT QUẢ TÌM KIẾM
+                     {{ searchTab === 'basic-search' ? 'CHO TỪ KHOÁ:' : '' }}
+                     {{ useRoute().query.searchText }}
+                  </h2>
+               </template>
                <div
                   class="loading-circular"
                   v-if="booksChange"
@@ -65,11 +78,6 @@
             </book-list>
          </v-col>
       </v-row>
-
-      <book-details
-         :book="bookActive"
-         ref="BookDetailsRef"
-      ></book-details>
    </v-container>
 </template>
 
@@ -77,13 +85,11 @@
    import BookService from '~/services/BookService';
    import SearchBar from '~/components/user/SearchBar.vue';
    import BookList from '~/components/user/BookList.vue';
-   import BookDetails from '~/pages/user/BookDetails.vue';
    import AdvancedSearch from '~/components/user/AdvancedSearch.vue';
    import { SEARCH_FILTERS_FOR_USER } from '~/utils/constants';
    import { useSearchFilterForUserStore, useCurrentPageStore } from '~/stores';
-   import { ref, onBeforeMount } from 'vue';
-   import { useRouter, onBeforeRouteUpdate } from 'vue-router';
-   import { onMounted } from 'vue';
+   import { ref, onBeforeMount, onMounted } from 'vue';
+   import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
 
    const currentPageStore = useCurrentPageStore();
    currentPageStore.setCurrentPage('result');

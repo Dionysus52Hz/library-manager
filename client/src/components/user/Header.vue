@@ -21,7 +21,7 @@
                class="d-none d-md-block"
             >
                <v-tab
-                  :class="[{ 'text-white': currentPage === 'home' }, '']"
+                  :class="[{ 'text-primary': currentPage === 'home' }, '']"
                   v-for="(page, index) in pages.slice(0, 4)"
                   :value="index"
                   @click="page.direct"
@@ -38,7 +38,7 @@
                height="32"
                class="me-4 d-none d-md-flex"
                :append-icon="mdiChevronRight"
-               :class="[{ 'text-white': currentPage === 'home' }, '']"
+               :class="[{ 'text-primary': currentPage === 'home' }, '']"
                >Đăng ký</v-btn
             >
             <v-btn
@@ -48,7 +48,7 @@
                height="32"
                class="me-4 d-none d-md-flex"
                :append-icon="mdiChevronRight"
-               :class="[{ 'text-white': currentPage === 'home' }, '']"
+               :class="[{ 'text-primary': currentPage === 'home' }, '']"
                >Đăng nhập</v-btn
             >
             <v-app-bar-nav-icon
@@ -158,12 +158,19 @@
    const tab = ref(null);
    const { mdAndUp } = useDisplay();
    const router = useRouter();
+   const emits = defineEmits(['reload']);
    const pages = [
       {
          text: 'Trang chủ',
          icon: mdiHome,
          direct: () => {
             router.push({ name: 'userHomePage' });
+            window.scrollTo({
+               top: 0,
+               left: 0,
+               behavior: 'smooth',
+            });
+            emits('reload');
          },
       },
       {
@@ -172,6 +179,11 @@
          direct: () => {
             router.push({
                name: 'bookCategoriesPage',
+            });
+            window.scrollTo({
+               top: 0,
+               left: 0,
+               behavior: 'smooth',
             });
          },
       },

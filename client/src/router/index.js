@@ -58,12 +58,10 @@ const routes = [
             component: Result,
          },
          {
-            path: 'books/:slug',
+            path: 'books/:slug/:id',
             name: 'bookDetailsPage',
-            components: {
-               default: Result,
-               BookDetails,
-            },
+            component: BookDetails,
+            props: true,
             beforeEnter: () => {},
          },
       ],
@@ -92,10 +90,8 @@ const router = createRouter({
    history: createWebHistory(import.meta.env.BASE_URL),
    routes,
    scrollBehavior(to, from, savedPosition) {
-      if (to.hash) {
-         return {
-            el: to.hash,
-         };
+      if (savedPosition) {
+         return savedPosition;
       }
    },
 });

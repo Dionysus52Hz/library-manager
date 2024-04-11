@@ -1,5 +1,6 @@
-import { slugify } from '~/utils/formatter';
+import slugify from 'slugify';
 import { userModel } from '~/models/userModel';
+import { jwtMiddleware } from '~/middlewares/jwt';
 
 const findAll = async () => {
    try {
@@ -12,19 +13,24 @@ const findAll = async () => {
 
 const createNew = async (reqBody) => {
    try {
-      const newBook = {
+      const newUser = {
          ...reqBody,
-         slug: slugify(reqBody.username),
+         slug: reqBody.username
+            ? slugify(reqBody.username, {
+                 locale: 'vi',
+                 lower: true,
+              })
+            : '',
       };
 
-      const createdBook = await userModel.createNew(newBook);
+      const createdUser = await userModel.createNew(newUser);
 
-      const getNewBook = await userModel.findOneById(createdBook.insertedId);
+      const getNewUser = await userModel.findOneById(createdUser.insertedId);
 
-      console.log(getNewBook);
+      console.log(getNewUser);
 
       // Service must have return
-      return getNewBook;
+      return getNewUser;
    } catch (error) {
       throw new Error(error);
    }
@@ -41,7 +47,10 @@ const findOneById = async (id) => {
 
 const updateOne = async (id, data) => {
    try {
-      data.slug = slugify(data.title);
+      data.slug = slugify(data.username, {
+         locale: 'vi',
+         lower: true,
+      });
       const result = await userModel.updateOne(id, data);
       return result;
    } catch (error) {
@@ -58,10 +67,34 @@ const deleteOne = async (id) => {
    }
 };
 
+const login = async (reqBody) => {
+   try {
+      const userData = await userModel.isCorrectPassword(reqBody);
+      const accessToken = jwtMiddleware.generateAccessToken(
+         userData._id,
+         userData.role
+      );
+      const refreshToken = jwtMiddleware.generateRefreshToken(userData._id);
+
+      await userModel.findByIdAndUpdate(userData._id, {
+         refreshToken,
+      });
+
+      return {
+         userData,
+         accessToken,
+         refreshToken,
+      };
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
 export const userService = {
    createNew,
    findAll,
    findOneById,
    updateOne,
    deleteOne,
+   login,
 };

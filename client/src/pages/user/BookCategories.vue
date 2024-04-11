@@ -44,16 +44,10 @@
                v-if="booksByTopic"
                :books="booksByTopic"
                :has-pagination="true"
-               @book-active="getBookActive"
                :documents-per-page="10"
             ></book-grid>
          </v-col>
       </v-row>
-
-      <book-details
-         ref="BookDetailsRef"
-         :book="bookActive"
-      ></book-details>
    </v-container>
 </template>
 
@@ -70,7 +64,6 @@
    import { onActivated } from 'vue';
 
    const currentPageStore = useCurrentPageStore();
-   currentPageStore.setCurrentPage('categories');
 
    const topicSelected = ref(0);
    const books = ref();
@@ -86,16 +79,14 @@
    watch(topicSelected, () => {
       getBooksByTopic(BOOK_TOPICS[topicSelected.value]);
    });
-   const bookActive = ref({});
-   const BookDetailsRef = ref(null);
-   const getBookActive = (book) => {
-      bookActive.value = book;
-      BookDetailsRef.value.openDialog();
-   };
 
    onBeforeMount(async () => {
       await getBooks();
       getBooksByTopic(BOOK_TOPICS[0]);
+   });
+
+   onActivated(() => {
+      currentPageStore.setCurrentPage('categories');
    });
 </script>
 
