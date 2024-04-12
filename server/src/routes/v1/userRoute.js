@@ -14,11 +14,17 @@ Router.route('/current').get(
    userController.getCurrent
 );
 
+Router.route('/logout').get(userController.logout);
+
 Router.route('/:id')
    .get(userController.findOneById)
    .put(userController.updateOne)
    .delete(userController.deleteOne);
 
 Router.route('/login').post(userController.login);
+
+Router.route('/create-new-access-token').post(
+   userController.createNewAccessToken
+);
 
 export const userRoute = Router;

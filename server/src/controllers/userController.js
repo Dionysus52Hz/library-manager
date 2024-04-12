@@ -72,18 +72,13 @@ const deleteOne = async (req, res, next) => {
 
 const login = async (req, res, next) => {
    try {
-      const { userData, accessToken, refreshToken } = await userService.login(
-         req.body
-      );
+      const userData = await userService.login(req.body);
 
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('refreshToken', userData.userData.refreshToken, {
          httpOnly: true,
          maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      res.status(StatusCodes.OK).json({
-         userData,
-         accessToken,
-      });
+      res.status(StatusCodes.OK).json(userData);
    } catch (error) {
       return next(
          new ApiError(StatusCodes.BAD_REQUEST, 'An error occurred while login.')
@@ -94,6 +89,7 @@ const login = async (req, res, next) => {
 const getCurrent = async (req, res, next) => {
    try {
       const { _id } = req.user;
+      console.log(_id);
       const { password, role, refreshToken, ...userData } =
          await userService.findOneById(_id);
       res.status(StatusCodes.OK).json({
@@ -109,6 +105,44 @@ const getCurrent = async (req, res, next) => {
    }
 };
 
+const createNewAccessToken = async (req, res, next) => {
+   try {
+      const cookie = req.cookies;
+      const refreshToken = cookie.refreshToken;
+      if (!cookie || !refreshToken) {
+         throw new Error('No refresh token in cookie');
+      }
+      const result = await userService.createNewAccessToken(refreshToken);
+
+      res.status(StatusCodes.OK).json({
+         newAccessToken: result,
+      });
+   } catch (error) {
+      return next(new ApiError(StatusCodes.BAD_REQUEST, error));
+   }
+};
+
+const logout = async (req, res, next) => {
+   try {
+      const cookie = req.cookies;
+      if (!cookie || !cookie.refreshToken) {
+         throw new Error('No refresh token in cookie');
+      }
+
+      await userService.logout(cookie.refreshToken);
+      res.clearCookie('refreshToken', {
+         httpOnly: true,
+         secure: true,
+      });
+
+      res.status(StatusCodes.OK).json({
+         message: 'Logout successfully',
+      });
+   } catch (error) {
+      return next(new ApiError(StatusCodes.BAD_REQUEST, error));
+   }
+};
+
 export const userController = {
    createNew,
    findAll,
@@ -116,5 +150,7 @@ export const userController = {
    updateOne,
    deleteOne,
    login,
+   logout,
    getCurrent,
+   createNewAccessToken,
 };

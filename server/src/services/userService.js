@@ -1,6 +1,8 @@
 import slugify from 'slugify';
 import { userModel } from '~/models/userModel';
 import { jwtMiddleware } from '~/middlewares/jwt';
+import jwt from 'jsonwebtoken';
+import { env } from '~/config/environment';
 
 const findAll = async () => {
    try {
@@ -76,15 +78,46 @@ const login = async (reqBody) => {
       );
       const refreshToken = jwtMiddleware.generateRefreshToken(userData._id);
 
-      await userModel.findByIdAndUpdate(userData._id, {
-         refreshToken,
+      const result = await userModel.findByIdAndUpdate(userData._id, {
+         refreshToken: refreshToken,
       });
 
       return {
-         userData,
+         userData: result,
          accessToken,
-         refreshToken,
       };
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
+const createNewAccessToken = async (refreshToken) => {
+   try {
+      const verified = jwt.verify(refreshToken, env.JWT_SECRET_KEY);
+
+      const result = await userModel.findOne({
+         _id: verified._id,
+         refreshToken: refreshToken,
+      });
+
+      const newAccessToken = result
+         ? jwtMiddleware.generateAccessToken(result._id, result.role)
+         : 'Invalid refresh token';
+
+      return newAccessToken;
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
+const logout = async (refreshToken) => {
+   try {
+      await userModel.findOneAndUpdate(
+         {
+            refreshToken,
+         },
+         { refreshToken: '' }
+      );
    } catch (error) {
       throw new Error(error);
    }
@@ -97,4 +130,6 @@ export const userService = {
    updateOne,
    deleteOne,
    login,
+   logout,
+   createNewAccessToken,
 };

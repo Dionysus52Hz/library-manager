@@ -157,7 +157,7 @@ const findByIdAndUpdate = async (id, data) => {
                _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
             },
             { $set: data },
-            { returnNewDocument: true }
+            { returnDocument: 'after' }
          );
    } catch (error) {
       throw new Error(error);
@@ -176,13 +176,43 @@ const deleteOne = async (id) => {
    }
 };
 
+const findOne = async (query) => {
+   try {
+      if (query._id) {
+         query._id = ObjectId.isValid(query._id)
+            ? new ObjectId(query._id)
+            : null;
+      }
+
+      const user = await GET_DB()
+         .collection(USER_COLLECTION_NAME)
+         .findOne(query);
+
+      return user;
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
+const findOneAndUpdate = async (query, data) => {
+   try {
+      return GET_DB()
+         .collection(USER_COLLECTION_NAME)
+         .findOneAndUpdate(query, { $set: data }, { returnDocument: 'after' });
+   } catch (error) {
+      throw new Error(error);
+   }
+};
+
 export const userModel = {
    USER_COLLECTION_NAME,
    USER_COLLECTION_SCHEMA,
    createNew,
    findAll,
+   findOne,
    findOneById,
    findByIdAndUpdate,
+   findOneAndUpdate,
    isCorrectPassword,
    updateOne,
    deleteOne,
